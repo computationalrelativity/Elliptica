@@ -47,6 +47,10 @@ static int tune_system_ADM_momenta(Physics_T *const phys)
   int ret = EXIT_SUCCESS;
 
   ret = sys_tune_ADM_momenta(phys);
+  if (ret == EXIT_SUCCESS)
+    ret = sys_tune_Omega_by_target_Jz(phys);
+  if (ret == EXIT_SUCCESS)
+    ret = sys_tune_infall_by_target_ADM_mass(phys);
 
   FUNC_TOC
   return ret;
@@ -413,6 +417,26 @@ static int set_system_params(Physics_T *const phys)
   // name:
   // "P_ADM_control_tolerance"
   */
+
+    /* tune angular_velocity so that J_z_ADM -> target_Jz.
+    // names: "target_Jz" (none = off, otherwise a number),
+    //        "Jz_control_update_weight",
+    //        "Jz_control_tolerance" (relative),
+    //        "Jz_control_threshold" (relative). */
+    Pset_default(P_"target_Jz","none");
+    Pset_default(P_"Jz_control_update_weight","0.");
+    Pset_default(P_"Jz_control_tolerance","1E-5");
+    Pset_default(P_"Jz_control_threshold","0.5");
+
+    /* tune infall_velocity so that ADM_mass -> target_ADM_mass.
+    // names: "target_ADM_mass" (none = off, otherwise a number),
+    //        "ADM_mass_control_update_weight",
+    //        "ADM_mass_control_tolerance" (relative),
+    //        "ADM_mass_control_threshold" (relative). */
+    Pset_default(P_"target_ADM_mass","none");
+    Pset_default(P_"ADM_mass_control_update_weight","0.");
+    Pset_default(P_"ADM_mass_control_tolerance","1E-5");
+    Pset_default(P_"ADM_mass_control_threshold","0.5");
 
 
   UNUSED(phys);
