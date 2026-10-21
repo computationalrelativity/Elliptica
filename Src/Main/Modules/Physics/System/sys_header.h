@@ -19,6 +19,8 @@
 #define P_ "SYS_"
 
 int sys_tune_ADM_momenta(Physics_T *const phys);
+int sys_tune_Omega_by_target_Jz(Physics_T *const phys);
+int sys_tune_infall_by_target_ADM_mass(Physics_T *const phys);
 
 void 
 sys_print_properties
