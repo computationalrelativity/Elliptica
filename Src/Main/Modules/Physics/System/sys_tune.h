@@ -5,8 +5,14 @@ typedef void fAdjustment_t (Physics_T *const phys);
 
 
 int sys_tune_ADM_momenta(Physics_T *const phys);
+static int parse_target_Jz(Physics_T *const phys, double *const Jt);
+int sys_tune_Omega_by_target_Jz(Physics_T *const phys);
+
+static int parse_target_ADM_mass(Physics_T *const phys, double *const Mt);
+int sys_tune_infall_by_target_ADM_mass(Physics_T *const phys);
+
 static fAdjustment_t *get_func_P_ADM_adjustment(const char *const adjust);
-static void parse_adjust_parameter(const char *const par,char *adjust[3]);
+static void parse_adjust_parameter(const char *const par, char *adjust[3]);
 static void Px_ADM_is0_by_y_CM(Physics_T *const phys);
 static void Py_ADM_is0_by_x_CM(Physics_T *const phys);
 static double infall_rate(Physics_T *const phys);
