@@ -192,4 +192,226 @@ static double infall_rate(Physics_T *const phys)
   return (D > 0.) ? Vr/D : 0.;
 }
 
+/* parse target_Jz: returns 0 if "none", else 1 and fills value */
+static int parse_target_Jz(Physics_T *const phys, double *const Jt)
+{
+  const char *const par = sysGets("target_Jz");
+  char *end = 0;
+
+  if (!par || strcmp_i(par, "none"))
+    return 0;
+
+  *Jt = strtod(par, &end);
+
+  if (end == par || *end != '\0' || !isfinite(*Jt))
+    Errors("Syntax error for target_Jz = '%s'.\n", par);
+
+  return 1;
+}
+
+/* Tune angular_velocity such that J_z_ADM approaches target_Jz.
+// Intended for fixed-Omega runs (force balance = none).
+// Call after sys_tune_ADM_momenta. */
+int sys_tune_Omega_by_target_Jz(Physics_T *const phys)
+{
+  FUNC_TIC
+
+  static int    have_prev = 0;
+  static double Om_prev = 0., J_prev = 0.;
+
+  double Jt = 0.;
+  const char *const par = sysGets("target_Jz");
+  const double W = sysGetd("Jz_control_update_weight");
+
+  printf(Pretty0
+         "Jz controller: raw target_Jz = '%s', update weight = %.8e\n",
+         par ? par : "(null)", W);
+
+  if (!parse_target_Jz(phys, &Jt))
+  {
+    printf(Pretty0 "Jz controller: inactive (target_Jz = none).\n");
+    have_prev = 0;
+  }
+  else
+  {
+    /* force balance also tunes Omega, so the two would fight */
+    if (phys->sys == BHNS &&
+        !Pcmps("NS_force_balance_equation", "none"))
+      Error0("target_Jz requires NS_force_balance_equation = none.\n");
+
+    if (Jt == 0.)
+      Error0("target_Jz is zero: relative error is undefined.\n");
+
+    const double J   = sysGetd("Jz_ADM");
+    const double Om0 = sysGetd("angular_velocity");
+    const double tol = sysGetd("Jz_control_tolerance");
+    const double thr = sysGetd("Jz_control_threshold");
+    const double max_step = 0.05;
+    const double err = (J-Jt)/fabs(Jt);
+
+    printf(Pretty0
+           "Jz controller: target = %.16e, current Jz = %.16e\n", Jt, J);
+    printf(Pretty0
+           "Jz controller: Omega = %.16e, rel. error = %.8e\n", Om0, err);
+    printf(Pretty0
+           "Jz controller: weight = %.8e, tolerance = %.8e, "
+           "threshold = %.8e\n", W, tol, thr);
+
+    if (Om0 == 0. || J == 0.)
+      Error0("Omega or Jz_ADM is zero: cannot rescale.\n");
+
+    if (GRT(fabs(err), tol) && LSS(fabs(err), thr))
+    {
+      const double s0 = J/Om0;
+      double slope = s0;
+
+      if (have_prev && fabs(Om0-Om_prev) > 1E-3*fabs(Om0))
+      {
+        const double s = (J-J_prev)/(Om0-Om_prev);
+
+        /* accept secant only if within a factor of 2 of s0 */
+        if (isfinite(s) && s/s0 > 0.5 && s/s0 < 2.)
+          slope = s;
+      }
+
+      Om_prev   = Om0;
+      J_prev    = J;
+      have_prev = 1;
+
+      double dOm = -W*(J-Jt)/slope;
+
+      if (fabs(dOm) > max_step*fabs(Om0))
+        dOm = (dOm > 0. ? 1. : -1.)*max_step*fabs(Om0);
+
+      printf(Pretty0
+             "Jz controller: updating Omega: dOmega = %.16e, "
+             "new Omega = %.16e\n", dOm, Om0+dOm);
+
+      sysSetd("angular_velocity", Om0+dOm);
+    }
+    else
+    {
+      printf(Pretty0
+             "Jz controller: NO UPDATE; abs(rel. error) = %.8e, "
+             "tolerance = %.8e, threshold = %.8e\n",
+             fabs(err), tol, thr);
+    }
+  }
+
+  FUNC_TOC
+  return EXIT_SUCCESS;
+}
+
+/* parse target_ADM_mass: returns 0 if "none", else 1 and fills value */
+static int parse_target_ADM_mass(Physics_T *const phys, double *const Mt)
+{
+  const char *const par = sysGets("target_ADM_mass");
+  char *end = 0;
+
+  if (!par || strcmp_i(par, "none"))
+    return 0;
+
+  *Mt = strtod(par, &end);
+
+  if (end == par || *end != '\0' || !isfinite(*Mt))
+    Errors("Syntax error for target_ADM_mass = '%s'.\n", par);
+
+  return 1;
+}
+
+/* Tune infall_velocity such that ADM_mass approaches target_ADM_mass.
+// M depends on v_r^2 so sensitivity is dM/dv ~ mu*v (Newtonian).
+// Call after sys_tune_Omega_by_target_Jz. */
+int sys_tune_infall_by_target_ADM_mass(Physics_T *const phys)
+{
+  FUNC_TIC
+
+  static int    have_prev = 0;
+  static double V_prev = 0., M_prev = 0.;
+
+  double Mt = 0.;
+
+  if (!parse_target_ADM_mass(phys, &Mt))
+  {
+    printf(Pretty0 "ADM mass controller: inactive (target = none).\n");
+    have_prev = 0;
+  }
+  else
+  {
+    if (Mt == 0.)
+      Error0("target_ADM_mass is zero: relative error is undefined.\n");
+
+    const double M   = sysGetd("ADM_mass");
+    const double V0  = sysGetd("infall_velocity");
+    const double W   = sysGetd("ADM_mass_control_update_weight");
+    const double tol = sysGetd("ADM_mass_control_tolerance");
+    const double thr = sysGetd("ADM_mass_control_threshold");
+    const double max_step = 0.05;
+    const double err = (M-Mt)/fabs(Mt);
+
+    /* Newtonian reduced mass from the masses in the parfile */
+    const double m1 = Pgetd("BH_irreducible_mass");
+    const double m2 = Pgetd("NS_baryonic_mass");
+    const double mu = m1*m2/(m1+m2);
+
+    printf(Pretty0
+           "ADM mass controller: target = %.16e, current M = %.16e\n",
+           Mt, M);
+    printf(Pretty0
+           "ADM mass controller: infall velocity = %.16e, "
+           "rel. error = %.8e\n", V0, err);
+    printf(Pretty0
+           "ADM mass controller: weight = %.8e, tolerance = %.8e, "
+           "threshold = %.8e\n", W, tol, thr);
+
+    if (V0 == 0.)
+    {
+      printf(Pretty0
+             "ADM mass controller: SKIPPED; infall_velocity = 0, "
+             "so dM/dv vanishes and the target cannot be reached "
+             "through it.\n");
+      have_prev = 0;
+    }
+    else if (GRT(fabs(err), tol) && LSS(fabs(err), thr))
+    {
+      const double s0 = mu*V0;   /* dM/dv from M ~ M0 + mu*v^2/2 */
+      double slope = s0;
+
+      if (have_prev && fabs(V0-V_prev) > 1E-3*fabs(V0))
+      {
+        const double s = (M-M_prev)/(V0-V_prev);
+
+        /* accept secant only if same sign and within a factor of 4 */
+        if (isfinite(s) && s/s0 > 0.25 && s/s0 < 4.)
+          slope = s;
+      }
+
+      V_prev    = V0;
+      M_prev    = M;
+      have_prev = 1;
+
+      double dV = -W*(M-Mt)/slope;
+
+      if (fabs(dV) > max_step*fabs(V0))
+        dV = (dV > 0. ? 1. : -1.)*max_step*fabs(V0);
+
+      printf(Pretty0
+             "ADM mass controller: updating infall velocity: "
+             "dV = %.16e, new V = %.16e\n", dV, V0+dV);
+
+      sysSetd("infall_velocity", V0+dV);
+    }
+    else
+    {
+      printf(Pretty0
+             "ADM mass controller: NO UPDATE; abs(rel. error) = %.8e, "
+             "tolerance = %.8e, threshold = %.8e\n",
+             fabs(err), tol, thr);
+    }
+  }
+
+  FUNC_TOC
+  return EXIT_SUCCESS;
+}
+
 
