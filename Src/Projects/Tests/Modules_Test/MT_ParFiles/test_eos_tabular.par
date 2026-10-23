@@ -29,12 +29,7 @@ NS_EoS_type                 = tabular
 NS_EoS_unit                 = geo
 NS_EoS_table_path           = /path/to/eos/table
 NS_EoS_table_format         = rest_mass_density,specific_internal_energy,pressure
-NS_EoS_interpolation_method = Hermite1D
-NS_EoS_interpolation_use_log= yes
-NS_EoS_Hermite1D_FD_accuracy= 3
-NS_EoS_Hermite1D_num_points = 2
-NS_EoS_enthalpy_floor       = +1.0021
-NS_Eos_enthalpy_ceiling     = 2.0
+NS_EoS_enthalpy_ceiling     = 2.0 # optional: cap on h (default: h of the last row); also the upper end of the test samples
 
 ## pwp
 #NS_EoS_description  = SLy

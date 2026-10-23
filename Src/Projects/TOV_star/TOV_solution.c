@@ -424,7 +424,8 @@ static double *baryonic_mass_integrand(const TOV_T *const TOV)
   for (i = 1; i < TOV->N; ++i)
   {
     tov_eos->h = h[i];
-    rho = (tov_eos->energy_density(tov_eos)+tov_eos->pressure(tov_eos))/h[i];
+    /* n*m_b of the table, so M_b = N_b*m_b as in the evolution code */
+    rho = tov_eos->export_rest_mass_density(tov_eos);
     s = 1-2*m[i]/r[i];
     f[i] = 4*M_PI*rho/sqrt(s)*Pow2(r[i])*dr_dh(h[i],r[i],m[i]);
   }

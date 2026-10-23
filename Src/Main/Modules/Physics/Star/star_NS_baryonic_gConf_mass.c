@@ -105,7 +105,7 @@ sqrt(L2)/(alpha*h);
   else
   {
     eos->h = h;
-    rho0   = eos->rest_mass_density(eos);
+    rho0   = eos->export_rest_mass_density(eos);/* n*m_b of the table */
   }
 
   baryonic_mass_integrand->v[ijk] = rho0*u0*alpha*psi6;

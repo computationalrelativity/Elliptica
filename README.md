@@ -28,14 +28,11 @@ Requirements:
 - A `LAPACK` library with 32-bit integers (LP64), for instance `OpenBLAS`.
 
 ```bash
-git clone --depth=1 git@github.com:rashti-alireza/Elliptica.git
+git clone --depth=1 git@github.com:computationalrelativity/Elliptica.git
 cd Elliptica
 make MyConfig
-make git_clone
 make -j4
 ```
-
-You can see the list of available projects after issuing `make git_clone` in `Src/Projects`.
 
 ## Linking BLAS/LAPACK
 
@@ -79,9 +76,9 @@ use `modify:<parameter> = <value>` to change them.
 
 # Run
 
-In each project there is a directory named `XXXX_ParFiles`, where `XXXX` denotes the project name, 
+In each project there is a directory named `XXXX_ParFiles`, where `XXXX` denotes the project name,
 e.g., `NSNS_ParFiles`.
-One can find various parameter files for different gravitational systems. 
+One can find various parameter files for different gravitational systems.
 Having set the parameters of interest, one invokes the code:
 
 `$ ./Exe/elliptica /path/to/the/parameter/file`

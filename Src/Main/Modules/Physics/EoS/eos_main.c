@@ -38,7 +38,13 @@ EoS_T *init_EoS(Physics_T *const phys)
   AssureType(phys->ctype == NS);
   
   populate_EoS(eos);/* populating EoS based on parameter file */
-  
+
+  /* by default the exported values are the same as the internal ones */
+  if (!eos->export_rest_mass_density)
+    eos->export_rest_mass_density = eos->rest_mass_density;
+  if (!eos->export_specific_internal_energy)
+    eos->export_specific_internal_energy = eos->specific_internal_energy;
+
   return eos;
 }
 
@@ -60,14 +66,10 @@ void free_EoS(EoS_T *s)
   Free(s->spline->p_sample);
   Free(s->spline->e_sample);
   Free(s->spline->rho0_sample);
-  Free(s->spline->h_log);
-  Free(s->spline->p_log);
-  Free(s->spline->e_log);
-  Free(s->spline->rho0_log);
-  
   free_interpolation(s->spline->interp_p);
   free_interpolation(s->spline->interp_e);
   free_interpolation(s->spline->interp_rho0);
+  eos_tab_free_monotone(s->spline->mono);
 
   free(s);
 }
@@ -294,23 +296,10 @@ static void populate_EoS(EoS_T *const eos)
            strcmp_i(eos->type, "tab")     || 
            strcmp_i(eos->type, "table"))
   {
+    /* enthalpy from the first law, dp = rho0 dh between rows,
+    // table rows reproduced, c_s^2 > 0 (see eos_tabular.c). */
     eos_tab_read_table(eos);
-    
-    if (strcmp_i(Gets(P_"Interpolation_Method"), "Hermite1D"))
-    {
-      if (strcmp_i(Gets(P_"interpolation_use_log"),"yes"))
-      {
-        eos_tab_set_hermite_log(eos);
-      }
-      else
-      {
-        eos_tab_set_hermite(eos);
-      }
-    }
-    else
-    {
-      Error0(NO_OPTION);
-    }
+    eos_tab_set_monotone_first_law(eos);
   }// end else if (strcmp_i(eos->type, "tabular") ...)
   else
   {

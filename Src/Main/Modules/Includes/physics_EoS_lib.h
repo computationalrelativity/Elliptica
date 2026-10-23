@@ -25,6 +25,12 @@ typedef struct EquationOfState_T
  double (*specific_internal_energy)(struct EquationOfState_T *const eos);
  double (*de_dh)(struct EquationOfState_T *const eos);/* d(energy_density)/dh */
  double (*drho0_dh)(struct EquationOfState_T *const eos);/* d(rest_mass_density)/dh */
+ /* rest mass density and specific internal energy written to the ID for
+ // the evolution code, i.e., n*m_b of the table. they differ from
+ // rest_mass_density and specific_internal_energy for a table, whose
+ // enthalpy is defined by the first law (see eos_tabular.c). */
+ double (*export_rest_mass_density)(struct EquationOfState_T *const eos);
+ double (*export_specific_internal_energy)(struct EquationOfState_T *const eos);
 
  ///////////////
  // polytrope //
@@ -46,26 +52,17 @@ typedef struct EquationOfState_T
  {
    double h_floor;/* set h to h_floor if h < h_floor */
    double h_ceil;/* set h to h_ceil if h > h_ceil */
-   double p_floor;/* set p to p_floor if p < p_floor */
-   double e_floor;/* set e to e_floor if e < e_floor */
-   double rho0_floor;/* set rho0 to rho0_floor if rho0 < rho0_floor */
    Uint sample_size;/* the number of points for a spline fit */
    double *h_sample;/* enthalpy sample values */
    double *p_sample;/* pressure sample values */
    double *e_sample;/* energy_density sample values */
-   double *rho0_sample;/* rest_mass_density sample values */
-   // Data arrays for log-log interpolation
-   double *h_log;     // Specific enthalpy
-   double *p_log;     // Pressure
-   double *e_log;     // Total energy density
-   double *rho0_log;  // Rest-mass density
-   double p_shift;    // Constant added to data to avoid log(0) in p.
-   double rho0_shift; // Constant added to data to avoid log(0) in rho0.
-   double e_shift;    // Constant added to data to avoid log(0) in e.
-   Uint use_log: 1;
+   double *rho0_sample;/* rest_mass_density sample values,
+                       // for a table this is n*m_b of the table
+                       // (used for the export). */
    void *interp_p;/* spline interpolation struct for p */
    void *interp_e;/* spline interpolation struct for e */
    void *interp_rho0;/* spline interpolation struct for rho0 */
+   struct EOS_TAB_MONO_T *mono;/* interpolation_method = monotone_first_law */
  }spline[1];
  
 }EoS_T;

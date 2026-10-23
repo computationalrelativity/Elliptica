@@ -1,0 +1,10 @@
+#include "bhbh_header.h"
+
+#define STR_LEN_MAX (400)
+
+int BH_BH_Binary_Initial_Data(void *vp);
+void bhbh_export_id_generic(void *vp);
+static void construct_initial_data(void *vp);
+static void set_default_parameters(void);
+static void fill_blackhole(Physics_T *const phys);
+
