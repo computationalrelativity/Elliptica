@@ -79,6 +79,7 @@ static Physics_T *infer_new_physics(Physics_T *const old_sns)
   
   /* update, adjust and tune */
   Psets("NS_enthalpy_neat","no");
+  physics(old_ns,STAR_TUNE_SPIN);
   //physics(old_ns,STRESS_ENERGY_UPDATE);
   physics(old_ns,STAR_TUNE_EULER_CONST);
   //physics(old_ns,STRESS_ENERGY_UPDATE);

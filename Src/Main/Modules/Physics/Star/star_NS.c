@@ -394,6 +394,53 @@ int star_NS_idealfluid_extrapolate_matter_fields(Physics_T *const phys)
 }
 
 
+/* adjust NS Omega to meet NS's chi (dimensionless spin) target value.
+// dOmega/dchi from the secant through the origin, else from I ~ 0.35 M R^2. */
+void star_NS_tune_chi(Physics_T *const phys)
+{
+  const double W1       = Getd("spin_update_weight");
+  const double dchi_tol = Getd("spin_tolerance");
+  const double m        = Getd("ADM_mass");
+  const double r        = Getd("TOV_radius");
+  const char *const xyz[3] = {"x","y","z"};
+  char par[100];
+  int i;
+  
+  printf(Pretty0"update weight    = %e\n",W1);
+  printf(Pretty0"chi tolerance    = %e\n",dchi_tol);
+  
+  if (EQL(W1,0.))
+    return;
+  
+  for (i = 0; i < 3; ++i)
+  {
+    sprintf(par,"chi_%s",xyz[i]);
+    const double chi = Getd(par);
+    sprintf(par,"chi_%s_current",xyz[i]);
+    const double chi_c = Getd(par);
+    sprintf(par,"Omega_%s",xyz[i]);
+    const double omega = Getd(par);
+    const double dchi  = chi - chi_c;
+    double dOmega_dchi;
+    
+    printf(Pretty0"current %s chi_%s = %e (target %e)\n",phys->stype,xyz[i],chi_c,chi);
+    
+    if (!GRT(fabs(dchi),dchi_tol))
+      continue;
+    
+    if (omega*chi_c > 0.)
+      dOmega_dchi = omega/chi_c;
+    else if (m > 0. && r > 0.)
+      dOmega_dchi = m/(0.35*r*r);
+    else
+      continue;
+    
+    Setd(par,omega+W1*dchi*dOmega_dchi);
+  }
+  
+  star_W_spin_vector_idealfluid_update(phys,"NS");
+}
+
 /* calculate W = Omega_NS x (r-C_NS) */
 void star_W_spin_vector_idealfluid_update(Physics_T *const phys,
                                           const char *const region)

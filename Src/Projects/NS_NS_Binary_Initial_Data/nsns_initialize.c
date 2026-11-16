@@ -82,6 +82,9 @@ static Physics_T *infer_new_physics(Physics_T *const old_nsns)
   old_ns2->igc       = Ins2;
   
   /* update, adjust and tune */
+  physics(old_ns1,STAR_TUNE_SPIN);
+  physics(old_ns2,STAR_TUNE_SPIN);
+  
   Psets("NS1_enthalpy_neat","no");
   //physics(old_ns1,STRESS_ENERGY_UPDATE);
   physics(old_ns1,STAR_TUNE_EULER_CONST);

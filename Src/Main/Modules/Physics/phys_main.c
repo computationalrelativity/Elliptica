@@ -29,6 +29,7 @@ int physics_main(Physics_T *const phys,const cmd_T cmd,
     case STAR_ADD_FIELDS:
     case STAR_SET_PARAMS:
     case STAR_EXTRAPOLATE_MATTERS:
+    case STAR_TUNE_SPIN:
       ret = star_main(phys);
     break;
 

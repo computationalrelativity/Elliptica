@@ -88,6 +88,7 @@ static void compute_properties(Physics_T *const phys/* bhns */)
   double s[3]  = {0.};
   double cm[3] = {0.};
   double m     = 0.;
+  double m_iso = 0.;/* isolated (TOV) NS mass for chi */
   
   /* NS: */
   observe(ns,"ADM(M)",Pgets("NS_Observe_ADM_M"),&m);
@@ -107,6 +108,7 @@ static void compute_properties(Physics_T *const phys/* bhns */)
   if (tov->status == 0)
   {
     Psetd("NS_TOV_ADM_mass",tov->ADM_m);
+    m_iso = tov->ADM_m;
     /* Note: compactness = adm_mass/Schwarzschild_radius 
       (not isotropic radius) */
     Psetd("NS_TOV_compactness",tov->ADM_m/tov->r[tov->N-1]);
@@ -136,10 +138,10 @@ static void compute_properties(Physics_T *const phys/* bhns */)
   Psetd("NS_Spin_y",s[1]);
   Psetd("NS_Spin_z",s[2]);
   
-  m = Pgetd("NS_adm_mass");
-  Psetd("NS_chi_x",s[0]/Pow2(m));
-  Psetd("NS_chi_y",s[1]/Pow2(m));
-  Psetd("NS_chi_z",s[2]/Pow2(m));
+  m = GRT(m_iso,0.) ? m_iso : Pgetd("NS_adm_mass");
+  Psetd("NS_chi_x_current",s[0]/Pow2(m));
+  Psetd("NS_chi_y_current",s[1]/Pow2(m));
+  Psetd("NS_chi_z_current",s[2]/Pow2(m));
   
   /* BH: */
   observe(bh,"Komar(M)",Pgets("BH_Observe_Komar_M"),&m);

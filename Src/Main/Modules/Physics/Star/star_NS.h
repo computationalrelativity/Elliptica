@@ -9,6 +9,7 @@ int star_NS_idealfluid_gConf_force_balance(Physics_T *const phys);
 static double Euler_eq_const_gConf_rootfinder_eq(void *params,const double *const x);
 static void W_spin_vector_idealfluid(Patch_T *const patch,const double Omega_NS[3],const double C_NS[3]);
 void star_W_spin_vector_idealfluid_update(Physics_T *const phys,const char *const region);
+void star_NS_tune_chi(Physics_T *const phys);
 static void parse_adjust_parameter(const char *const par,char *adjust[3]);
 static fAdjustment_t *get_func_force_balance_adjustment(const char *const adjust);
 static void force_balance_ddx_x_CM(Physics_T *const phys);

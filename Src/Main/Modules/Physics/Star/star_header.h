@@ -80,6 +80,7 @@ int star_NS_keep_center_fixed(Physics_T *const phys);
 void star_start_off_TOV (Physics_T *const phys);
 double star_NS_current_Euler_eq_const(Physics_T *const phys);
 void star_W_spin_vector_idealfluid_update(Physics_T *const phys,const char *const region);
+void star_NS_tune_chi(Physics_T *const phys);
 
 #endif
 

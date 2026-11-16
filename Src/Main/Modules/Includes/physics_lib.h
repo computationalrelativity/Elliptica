@@ -181,6 +181,7 @@ typedef enum CMD_T
  EQ_ADD_FIELDS,/* add fields */
  EQ_SOLVE,/* solve eq(s) */
  
+ STAR_TUNE_SPIN,/* NS Omega for target chi */
  
  CMD_END
 }cmd_T;

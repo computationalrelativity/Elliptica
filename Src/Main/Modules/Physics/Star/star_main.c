@@ -40,6 +40,11 @@ int star_main(Physics_T *const phys)
       ret = tune_star_center(phys);
     break;
     
+    case STAR_TUNE_SPIN:
+      AssureType(phys->ctype == NS);
+      ret = tune_star_spin(phys);
+    break;
+    
     case STAR_SET_PARAMS:
       ret = set_star_params(phys);
     break;
@@ -181,6 +186,17 @@ static int tune_star_center(Physics_T *const phys)
  
   FUNC_TOC
   return ret;
+}
+
+/* adjust NS Omega to reach the target chi */
+static int tune_star_spin(Physics_T *const phys)
+{
+  FUNC_TIC
+  
+  star_NS_tune_chi(phys);
+  
+  FUNC_TOC
+  return EXIT_SUCCESS;
 }
 
 /* star add fields */

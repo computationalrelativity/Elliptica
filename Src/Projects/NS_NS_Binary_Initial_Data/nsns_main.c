@@ -219,10 +219,15 @@ static void set_default_parameters(void)
   Pset_default("NS1_Omega_y","0."); 
   Pset_default("NS1_Omega_z","0."); 
 
-  /* spin */
+  /* spin: chi is the target, used only if NS1_spin_update_weight != 0 */
   Pset_default("NS1_chi_x","0."); 
   Pset_default("NS1_chi_y","0."); 
   Pset_default("NS1_chi_z","0."); 
+  Pset_default("NS1_chi_x_current","0."); 
+  Pset_default("NS1_chi_y_current","0."); 
+  Pset_default("NS1_chi_z_current","0."); 
+  Pset_default("NS1_spin_update_weight","0."); 
+  Pset_default("NS1_spin_tolerance","1E-3"); 
   Pset_default("NS1_spin_x","0."); 
   Pset_default("NS1_spin_y","0."); 
   Pset_default("NS1_spin_z","0."); 
@@ -246,6 +251,7 @@ static void set_default_parameters(void)
    "rho0_center,pressure_center,energy_density_center,"
    "enthalpy_L2_residual,Euler_equation_constant,"
    "Omega_x,Omega_y,Omega_z,chi_x,chi_y,chi_z,"
+   "chi_x_current,chi_y_current,chi_z_current,"
    "spin_x,spin_y,spin_z,"
    "Px_ADM,Py_ADM,Pz_ADM,"
    "Jx_ADM,Jy_ADM,Jz_ADM");
@@ -362,10 +368,15 @@ static void set_default_parameters(void)
   Pset_default("NS2_Omega_y","0."); 
   Pset_default("NS2_Omega_z","0."); 
   
-  /* spin */
+  /* spin: chi is the target, used only if NS2_spin_update_weight != 0 */
   Pset_default("NS2_chi_x","0."); 
   Pset_default("NS2_chi_y","0."); 
   Pset_default("NS2_chi_z","0."); 
+  Pset_default("NS2_chi_x_current","0."); 
+  Pset_default("NS2_chi_y_current","0."); 
+  Pset_default("NS2_chi_z_current","0."); 
+  Pset_default("NS2_spin_update_weight","0."); 
+  Pset_default("NS2_spin_tolerance","1E-3"); 
   Pset_default("NS2_spin_x","0."); 
   Pset_default("NS2_spin_y","0."); 
   Pset_default("NS2_spin_z","0."); 
@@ -389,6 +400,7 @@ static void set_default_parameters(void)
    "rho0_center,pressure_center,energy_density_center,"
    "enthalpy_L2_residual,Euler_equation_constant,"
    "Omega_x,Omega_y,Omega_z,chi_x,chi_y,chi_z,"
+   "chi_x_current,chi_y_current,chi_z_current,"
    "spin_x,spin_y,spin_z,"
    "Px_ADM,Py_ADM,Pz_ADM,"
    "Jx_ADM,Jy_ADM,Jz_ADM");
