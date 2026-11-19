@@ -548,6 +548,13 @@ static void initialize_fields_using_previous_solve
   /* if resolution changed */
   if(Pgeti(P_"did_resolution_change?"))
   {
+    /* new excision surface may lie inside the old one */
+    if (Pgeti("BH_was_BH_filled?") == 0)
+    {
+      Psets("BH_filler_fields","alphaPsi,psi,B0_U0,B0_U1,B0_U2");
+      physics(old_bh,BH_FILL);
+      Pseti("BH_was_BH_filled?",1);
+    }
     interpolate_fields_from_old_grid_to_new_grid
       (old_phys->grid,new_phys->grid,"psi,alphaPsi,B0_U0,B0_U1,B0_U2",0);
   }
