@@ -525,6 +525,61 @@ Physics_T *bhns_read_physics_from_checkpoint(void)
   return bhns;
 }
 
+/* BH_FILL adds patches inside the BH of the given (old) grid using the
+// global MNFLD_SplitCS_{n,Nsplit}_* params. At a resolution change these
+// already hold the NEW grid's values (set in create_new_grid), while the
+// per-grid geometry params (sigma, min/max, ...) belong to the OLD grid.
+// This mismatch builds the inner patches with the wrong number of nodes and
+// reads the old sigma arrays out of bounds, so either the filler fails or
+// the inner patches don't cover the hole. Hence, temporarily restore the
+// old grid's resolution while filling. */
+static void fill_old_bh_at_old_resolution(Physics_T *const old_bh)
+{
+  Grid_T *const ogrid = old_bh->grid;
+  Patch_T *ref = 0;
+  
+  for (Uint p = 0; p < ogrid->np; ++p)
+  {
+    if (ogrid->patch[p]->coordsys == CubedSpherical)
+    {
+      ref = ogrid->patch[p];
+      break;
+    }
+  }
+  if (!ref)
+    Error0("No cubed spherical patch found in the old grid.");
+  
+  const char *const n_par[3]  = {"MNFLD_SplitCS_n_a",
+                                 "MNFLD_SplitCS_n_b",
+                                 "MNFLD_SplitCS_n_c"};
+  const char *const ns_par[3] = {"MNFLD_SplitCS_Nsplit_a",
+                                 "MNFLD_SplitCS_Nsplit_b",
+                                 "MNFLD_SplitCS_Nsplit_c"};
+  const char *const gs_par[3] = {"grid_SplitCS_Nsplit_a",
+                                 "grid_SplitCS_Nsplit_b",
+                                 "grid_SplitCS_Nsplit_c"};
+  int n_save[3],ns_save[3],gs_save[3];
+  
+  for (Uint d = 0; d < 3; ++d)
+  {
+    n_save[d]  = Pgeti(n_par[d]);
+    ns_save[d] = Pgeti(ns_par[d]);
+    gs_save[d] = Pgeti(gs_par[d]);
+    Pseti(n_par[d], (int)ref->n[d]);
+    Pseti(ns_par[d],(int)ref->nsplit[d]);
+    Pseti(gs_par[d],(int)ref->nsplit[d]);
+  }
+  
+  physics(old_bh,BH_FILL);
+  
+  for (Uint d = 0; d < 3; ++d)
+  {
+    Pseti(n_par[d], n_save[d]);
+    Pseti(ns_par[d],ns_save[d]);
+    Pseti(gs_par[d],gs_save[d]);
+  }
+}
+
 /* using copy or interpolation from old physics to 
 // initialize fields for new physics */
 static void initialize_fields_using_previous_solve
@@ -552,7 +607,7 @@ static void initialize_fields_using_previous_solve
     if (Pgeti("BH_was_BH_filled?") == 0)
     {
       Psets("BH_filler_fields","alphaPsi,psi,B0_U0,B0_U1,B0_U2");
-      physics(old_bh,BH_FILL);
+      fill_old_bh_at_old_resolution(old_bh);
       Pseti("BH_was_BH_filled?",1);
     }
     interpolate_fields_from_old_grid_to_new_grid

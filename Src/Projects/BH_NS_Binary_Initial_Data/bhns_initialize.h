@@ -48,6 +48,7 @@ static void initial_B0I(Physics_T *const phys,
 
 Physics_T *bhns_read_physics_from_checkpoint(void);
 static Physics_T *infer_new_physics(Physics_T *const old_phys);
+static void fill_old_bh_at_old_resolution(Physics_T *const old_bh);
 static void initialize_fields_using_previous_solve
             (Physics_T *const new_phys,Physics_T *const old_phys);
 static void update_params(Physics_T *const phys);
